@@ -18,27 +18,17 @@
 
 The following instructions show how to get this skill deployed using teh ASK CLI. If you would prefer to view instructions for how to perform the same steps using the Web UIs, please foolow the instruction in [this guide](instructions/3-deployment-web.md).
 
-1. Get a local copy of the Color Changer skill code from [alexa-sample-nodejs-buttons-colorchanger](https://github.com/alexa/skill-sample-nodejs-buttons-colorchanger) GitHub. You may clone the repository locally, or simply download and unzip the sample code from GitHub. 
-
-	```bash
-	$ git clone https://github.com/alexa/skill-sample-nodejs-buttons-colorchanger/
+1. Create a new skill from the template
+``` bash
+$ ask new --url https://github.com/JargonInc/skill-sample-nodejs-buttons-colorchanger.git
 	```
 
-2. Initialize the [ASK CLI](https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html) by Navigating into the repository and running the command: `ask init` and create a new profile called `color-changer`. Follow the prompts to configure the profile and associate it with one of your [AWS profiles](https://docs.aws.amazon.com/cli/latest/userguide/cli-multiple-profiles.html)
+1. Initialize the [ASK CLI](https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html) by Navigating into the repository and running the command: `ask init` and create a new profile called `color-changer`. Follow the prompts to configure the profile and associate it with one of your [AWS profiles](https://docs.aws.amazon.com/cli/latest/userguide/cli-multiple-profiles.html)
 
 	```bash
 	$ cd skill-sample-nodejs-buttons-colorchanger
 	$ ask init -p color-changer
 	```
-
-3. Install npm dependencies by navigating into the `/lambda/custom` directory and running the npm command: `npm install`
-
-	```bash
-	$ cd lambda/custom
-	$ npm install
-	```
-
-
 ### Deployment
 
 ASK CLI will create the skill and the lambda function for you. The Lambda function will be created in the region associated with the AWS profile that you selected.
