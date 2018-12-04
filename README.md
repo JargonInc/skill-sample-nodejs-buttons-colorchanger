@@ -1,6 +1,6 @@
 # Color Changer Skill for Echo Buttons, using the Jargon SDK
 
-This is a fork of the [](https://github.com/alexa/skill-sample-nodejs-buttons-colorchanger#readme) that uses the [Jargon SDK](https://github.com/JargonInc/jargon-sdk-nodejs/tree/master/packages/alexa-skill-sdk#readme) to manage content.
+This is a fork of the [Color Changer Skill for Echo Buttons](https://github.com/alexa/skill-sample-nodejs-buttons-colorchanger#readme) template that uses the [Jargon SDK](https://github.com/JargonInc/jargon-sdk-nodejs/tree/master/packages/alexa-skill-sdk#readme) to manage content.
 
 ## Changes from the source template
 * Add dependency on the Jargon SDK npm package (@jargon/alexa-skill-sdk)
