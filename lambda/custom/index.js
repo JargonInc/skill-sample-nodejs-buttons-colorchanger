@@ -16,10 +16,11 @@
 'use strict';
 
 const Alexa = require('ask-sdk-core');
+const Jargon = require('@jargon/alexa-skill-sdk')
+const ri = Jargon.ri
+
 // Gadget Directives Builder
 const GadgetDirectives = require('util/gadgetDirectives.js');
-// Basic Animation Helper Library
-const BasicAnimations = require('button_animations/basicAnimations.js');
 // import the skill settings constants 
 const Settings = require('settings.js');
 
@@ -32,8 +33,11 @@ exports.handler = function (event, context) {
      // Prints Alexa Event Request to CloudWatch logs for easier debugging
      console.log(`===EVENT===${JSON.stringify(event)}`);
      if (!skill) {
-     skill = Alexa.SkillBuilders.custom()
-
+      const opts = {
+        mergeSpeakAndReprompt: true
+      }
+      const skillBuilder = new Jargon.JargonSkillBuilder(opts).wrap(Alexa.SkillBuilders.custom());
+      skill = skillBuilder
          .addRequestHandlers(
              GlobalHandlers.LaunchRequestHandler,
              GlobalHandlers.GameEngineInputHandler,
@@ -44,7 +48,6 @@ exports.handler = function (event, context) {
              GlobalHandlers.SessionEndedRequestHandler,
              GlobalHandlers.DefaultHandler
          )
-         .addRequestInterceptors(GlobalHandlers.RequestInterceptor)
          .addResponseInterceptors(GlobalHandlers.ResponseInterceptor)
          .addErrorHandlers(GlobalHandlers.ErrorHandler)
          .create();
@@ -83,8 +86,8 @@ const GlobalHandlers = {
         handle(handlerInput, error) {
             console.log("Global.ErrorHandler: error = " + error.message);
 
-            return handlerInput.responseBuilder
-                .speak('An error was encountered while handling your request. Try again later')
+            return handlerInput.jrb
+                .speak(ri("Error"))
                 .getResponse();
         }
     },
@@ -107,34 +110,25 @@ const GlobalHandlers = {
             if (sessionAttributes.CurrentInputHandlerID) {
                 // if there is an active input handler, stop it so it doesn't interrup Alexa speaking the Help prompt
                 // see: https://developer.amazon.com/docs/gadget-skills/receive-echo-button-events.html#stop
-                ctx.directives.push(GadgetDirectives.stopInputHandler({ 
+                handlerInput.jrb.addDirective(
+                  GadgetDirectives.stopInputHandler({ 
                     'id': sessionAttributes.CurrentInputHandlerID
-                }));
+                }))
             }
 
-            let reprompt = "", 
-                outputSpeech = "";
             if (sessionAttributes.isRollCallComplete === true) {
                 // roll call is complete
-                ctx.reprompt = ["Pick a color to test your buttons: red, blue, or green. "];
-                ctx.reprompt.push(" Or say cancel or exit to quit. ");
-
-                ctx.outputSpeech = ["Now that you have registered two buttons, "];
-                ctx.outputSpeech.push("you can pick a color to show when the buttons are pressed. ");
-                ctx.outputSpeech.push("Select one of the following colors: red, blue, or green. ");                
-                ctx.outputSpeech.push("If you do not wish to continue, you can say exit. ");                
+                handlerInput.jrb.reprompt(ri("Help.PostRollCallReprompt"))
+                handlerInput.jrb.speak(ri("Help.PostRollCallSpeak"))            
             } else {            
                 // the user hasn't yet completed roll call
-                ctx.reprompt = ["You can say yes to continue, or no or exit to quit."];
-                ctx.outputSpeech = ["You will need two Echo buttons to to use this skill. "];
-                ctx.outputSpeech.push("Each of the two buttons you plan to use ");
-                ctx.outputSpeech.push("must be pressed for the skill to register them. ");
-                ctx.outputSpeech.push("Would you like to continue and register two Echo buttons? ");
+                handlerInput.jrb.reprompt(ri("Help.PreRollCallReprompt"))
+                handlerInput.jrb.speak(ri("Help.PreRollCallSpeak"))  
                                 
                 sessionAttributes.expectingEndSkillConfirmation = true;
             }  
             
-            return handlerInput.responseBuilder.getResponse();
+            return handlerInput.jrb.getResponse();
         }
     },
     StopIntentHandler: {
@@ -149,7 +143,6 @@ const GlobalHandlers = {
         },
         handle(handlerInput) {
             console.log("Global.StopIntentHandler: handling request");
-            handlerInput.responseBuilder.speak('Good Bye!')
             return GlobalHandlers.SessionEndedRequestHandler.handle(handlerInput);
         }
     },
@@ -170,7 +163,7 @@ const GlobalHandlers = {
                            +"received event from " + request.originatingRequestId 
                            +" (was expecting " + sessionAttributes.CurrentInputHandlerID + ")");
                 ctx.openMicrophone = false;
-                return handlerInput.responseBuilder.getResponse();
+                return handlerInput.jrb.getResponse();
             }
 
             var gameEngineEvents = request.events || [];
@@ -199,7 +192,7 @@ const GlobalHandlers = {
                         break;
                 }
             }
-            return handlerInput.responseBuilder.getResponse();
+            return handlerInput.jrb.getResponse();
         }
     },
     YesIntentHandler: {
@@ -221,9 +214,7 @@ const GlobalHandlers = {
             if (state === Settings.SKILL_STATES.ROLL_CALL_MODE 
                 && sessionAttributes.expectingEndSkillConfirmation === true) {
                 // pass control to the StartRollCall event handler to restart the rollcall process
-                ctx.outputSpeech = ["Ok. Press the first button, wait for confirmation,"];
-                ctx.outputSpeech.push("then press the second button.");
-                ctx.outputSpeech.push(Settings.WAITING_AUDIO);
+                handlerInput.jrb.speak(ri("RollCall.Instructions"))
                 ctx.timeout = 30000;
                 return RollCall.StartRollCall(handlerInput);
             } else if (state === Settings.SKILL_STATES.EXIT_MODE 
@@ -261,9 +252,10 @@ const GlobalHandlers = {
                 return GlobalHandlers.StopIntentHandler.handle(handlerInput);
             } if (state === Settings.SKILL_STATES.EXIT_MODE 
                 && sessionAttributes.expectingEndSkillConfirmation === true) { 
-                ctx.reprompt = ["Pick a different color, red, blue, or green."];
-                ctx.outputSpeech = ["Ok, let's keep going."];
-                ctx.outputSpeech.push(ctx.reprompt);
+                handlerInput.jrb
+                  .reprompt(ri("PickDifferentColor"))
+                  .speak(ri("KeepGoing"))
+                  .speak(ri("PickDifferentColor"))
                 ctx.openMicrophone = true;
                 sessionAttributes.state = Settings.SKILL_STATES.PLAY_MODE;
                 return handlerInput.responseBuilder.getResponse();
@@ -295,11 +287,13 @@ const GlobalHandlers = {
  
             // otherwise, try to let the user know that we couldn't understand the request 
             //  and prompt for what to do next
-            ctx.reprompt = ["Please say again, or say help if you're not sure what to do."];
-            ctx.outputSpeech = ["Sorry, I didn't get that. " + ctx.reprompt[0]];
+            handlerInput.jrb
+              .reprompt(ri("SayAgainOrHelp"))
+              .speak(ri("Sorry"))
+              .speak(ri("SayAgainOrHelp"))
             
             ctx.openMicrophone = true;        
-            return handlerInput.responseBuilder.getResponse();
+            return handlerInput.jrb.getResponse();
         }
     },
     SessionEndedRequestHandler: {
@@ -308,23 +302,11 @@ const GlobalHandlers = {
         },
         handle(handlerInput) {
             console.log(`Session ended with reason: ${handlerInput.requestEnvelope.request.reason}`);
-            let response = handlerInput.responseBuilder.getResponse();
-            response.shouldEndSession = true;
-            const ctx = handlerInput.attributesManager.getRequestAttributes();
-            ctx.outputSpeech = ["Good bye!"];            
-            return handlerInput.responseBuilder.getResponse();
+            return handlerInput.jrb
+              .speak(ri("Goodbye"))
+              .withShouldEndSession(true)
+              .getResponse()
         },
-    },
-    RequestInterceptor: {
-        process(handlerInput) {  
-            console.log("Global.RequestInterceptor: pre-processing response");
-            let {attributesManager, responseBuilder} = handlerInput;
-            let ctx = attributesManager.getRequestAttributes();
-            ctx.directives = [];
-            ctx.outputSpeech = [];
-            ctx.reprompt = [];
-            console.log("Global.RequestInterceptor: pre-processing response complete");
-        }
     },
     ResponseInterceptor: {
         process(handlerInput) {        
@@ -332,18 +314,6 @@ const GlobalHandlers = {
             const ctx = attributesManager.getRequestAttributes();   
             console.log("Global.ResponseInterceptor: post-processing response " + JSON.stringify(ctx)); 
             
-            if (ctx.outputSpeech.length > 0) {                
-                let outputSpeech = ctx.outputSpeech.join(' ');
-                console.log("Global.ResponseInterceptor: adding " 
-                    + ctx.outputSpeech.length + " speech parts"); 
-                responseBuilder.speak(outputSpeech);
-            }
-            if (ctx.reprompt.length > 0) {         
-                console.log("Global.ResponseInterceptor: adding " 
-                    + ctx.outputSpeech.length + " speech reprompt parts");        
-                let reprompt = ctx.reprompt.join(' ');
-                responseBuilder.reprompt(reprompt);
-            }
             let response = responseBuilder.getResponse();
             
             if ('openMicrophone' in ctx) {
@@ -362,27 +332,10 @@ const GlobalHandlers = {
                 }
             }
 
-            if (Array.isArray(ctx.directives)) {   
-                console.log("Global.ResponseInterceptor: processing " + ctx.directives.length + " custom directives ");
-                response.directives = response.directives || [];
-                for (let i = 0; i < ctx.directives.length; i++) {
-                    response.directives.push(ctx.directives[i]);
-                }
-            }
-
             console.log(`==Response==${JSON.stringify(response)}`);
             console.log(`==SessionAttributes==${JSON.stringify(attributesManager.getSessionAttributes())}`);
 
             return response;
-            //return new Promise((resolve, reject) => {
-            //    handlerInput.attributesManager.savePersistentAttributes()
-            //        .then(() => {
-            //            resolve();
-            //        })
-            //        .catch((error) => {
-            //            reject(error);
-            //        });
-            //});
         }
     }
 };

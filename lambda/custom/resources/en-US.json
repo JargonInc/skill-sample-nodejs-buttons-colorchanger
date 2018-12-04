@@ -1,0 +1,35 @@
+{
+  "ButtonPressed":"Button {buttonNumber}. <audio src='https://s3.amazonaws.com/ask-soundlibrary/foley/amzn_sfx_rhythmic_ticking_30s_01.mp3'/>",
+  "ColorChangeSuccess":"Ok, {color} it is. When you press a button, it will now turn {color}. Pressing the button will also interrupt me if I'm speaking or playing music. I'll keep talking so you can interrupt me. Go ahead and try it. <audio src='https://s3.amazonaws.com/ask-soundlibrary/foley/amzn_sfx_rhythmic_ticking_30s_01.mp3'/>",
+  "Error":"An error was encountered while handling your request. Try again later",
+  "Goodbye":"Good Bye!",
+  "Help":{
+    "PostRollCallReprompt":"Pick a color to test your buttons: red, blue, or green. Or say cancel or exit to quit.",
+    "PostRollCallSpeak":"Now that you have registered two buttons, you can pick a color to show when the buttons are pressed. Select one of the following colors: red, blue, or green. If you do not wish to continue, you can say exit.",
+    "PreRollCallReprompt":"You can say yes to continue, or no or exit to quit.",
+    "PreRollCallSpeak":"You will need two Echo buttons to to use this skill. Each of the two buttons you plan to use must be pressed for the skill to register them. Would you like to continue and register two Echo buttons?"
+  },
+  "KeepGoing":"Ok, let's keep going.",
+  "PickDifferentColor":"Pick a different color, red, blue, or green.",
+  "PickValidColor":"What color was that? Please pick a valid color!",
+  "RollCall":{
+    "HelloButton1":"Hello button 1. <audio src='https://s3.amazonaws.com/ask-soundlibrary/foley/amzn_sfx_rhythmic_ticking_30s_01.mp3'/>",
+    "HelloButton2":"Hello button 2. <break time='1s'/> Awesome. I've registered two buttons.",
+    "HelloButtons12":"Hello buttons 1 and 2 <break time='1s'/> Awesome!",
+    "Instructions":"Ok. Press the first button, wait for confirmation, then press the second button. <audio src='https://s3.amazonaws.com/ask-soundlibrary/foley/amzn_sfx_rhythmic_ticking_30s_01.mp3'/>",
+    "PickColorInstructions":"Now let's learn about button events. Please select one of the following colors: red, blue, or green.",
+    "PickColorReprompt":"Please pick a color: green, red, or blue",
+    "NewSession":"Welcome to the Color Changer skill. This skill provides a brief introduction to the core functionality that every Echo Button skill should have. We'll cover roll call, starting and stopping the Input Handler, button events and Input Handler timeout events. Let's get started with roll call. Roll call wakes up the buttons to make sure they're connected and ready for play. Ok. Press the first button and wait for confirmation before pressing the second button. <audio src='https://s3.amazonaws.com/ask-soundlibrary/foley/amzn_sfx_rhythmic_ticking_30s_01.mp3'/>",
+    "Timeout":{
+      "Message":"For this skill we need two buttons. Would you like more time to press the buttons?",
+      "Reprompt":"Say yes to go back and add buttons, or no to exit now."
+    }
+  },
+  "SayAgainOrHelp":"Please say again, or say help if you're not sure what to do.",
+  "Sorry":"Sorry, I didn't get that.",
+  "Timeout":{
+    "Message":"The input handler has timed out. That concludes our test, would you like to quit?",
+    "Reprompt":"Would you like to exit? Say Yes to exit, or No to keep going"
+  },
+  "UnregisteredButton":"Unregistered button. Only buttons registered during roll call are in play. <audio src='https://s3.amazonaws.com/ask-soundlibrary/foley/amzn_sfx_rhythmic_ticking_30s_01.mp3'/>"
+}
