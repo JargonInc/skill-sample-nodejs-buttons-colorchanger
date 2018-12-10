@@ -27,11 +27,14 @@ const Settings = require('settings.js');
 const RollCall = require('rollcall.js');
 const GamePlay = require('gameplay.js');
 
+const util = require('util')
+util.inspect.defaultOptions.depth = null
+
 let skill;
  
 exports.handler = function (event, context) {
      // Prints Alexa Event Request to CloudWatch logs for easier debugging
-     console.log(`===EVENT===${JSON.stringify(event)}`);
+     console.log(`===EVENT===${util.inspect(event)}`);
      if (!skill) {
       const opts = {
         mergeSpeakAndReprompt: true
@@ -84,7 +87,7 @@ const GlobalHandlers = {
             return !!error.name;     //error.name.startsWith('AskSdk');
         },
         handle(handlerInput, error) {
-            console.log("Global.ErrorHandler: error = " + error.message);
+            console.log("Global.ErrorHandler: error = " + error.stack);
 
             return handlerInput.jrb
                 .speak(ri("Error"))
@@ -312,7 +315,7 @@ const GlobalHandlers = {
         process(handlerInput) {        
             let {attributesManager, responseBuilder} = handlerInput;                        
             const ctx = attributesManager.getRequestAttributes();   
-            console.log("Global.ResponseInterceptor: post-processing response " + JSON.stringify(ctx)); 
+            console.log("Global.ResponseInterceptor: post-processing response " + util.inspect(ctx)); 
             
             let response = responseBuilder.getResponse();
             
@@ -332,8 +335,8 @@ const GlobalHandlers = {
                 }
             }
 
-            console.log(`==Response==${JSON.stringify(response)}`);
-            console.log(`==SessionAttributes==${JSON.stringify(attributesManager.getSessionAttributes())}`);
+            console.log(`==Response==${util.inspect(response)}`);
+            console.log(`==SessionAttributes==${util.inspect(attributesManager.getSessionAttributes())}`);
 
             return response;
         }

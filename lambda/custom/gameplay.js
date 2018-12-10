@@ -25,8 +25,6 @@ const BasicAnimations = require('button_animations/basicAnimations.js');
 // import the skill settings constants 
 const Settings = require('settings.js');
 
-
-    
 // Define a recognizer for button down events that will match when any button is pressed down.
 // We'll use this recognizer as trigger source for the "button_down_event" during play
 // see: https://developer.amazon.com/docs/gadget-skills/define-echo-button-events.html#recognizers

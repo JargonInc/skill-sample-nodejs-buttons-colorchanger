@@ -15,17 +15,22 @@
 
 'use strict';
 
-const Alexa = require('ask-sdk-core');
+const Jargon = require('@jargon/alexa-skill-sdk')
+const ri = Jargon.ri
+
 // Gadget Directives Builder
 const GadgetDirectives = require('util/gadgetDirectives.js');
 // Basic Animation Helper Library
 const BasicAnimations = require('button_animations/basicAnimations.js');
-// import the skill settings constants 
+// import the skill settings constants
 const Settings = require('settings.js');
+
+const util = require('util')
+util.inspect.defaultOptions.depth = null
 
 
 // Define some animations that we'll use during roll call, to be played in various situations,
-// such as when buttons "check in" during roll call, or after both buttons were detected. 
+// such as when buttons "check in" during roll call, or after both buttons were detected.
 // See: https://developer.amazon.com/docs/gadget-skills/control-echo-buttons.html#animate
 const ROLL_CALL_ANIMATIONS = {
     'RollCallComplete': {
@@ -40,8 +45,8 @@ const ROLL_CALL_ANIMATIONS = {
         'targetGadgets': [],
         'animations': BasicAnimations.SolidAnimation(1, "green", 1000)
     },
-    'ButtonCheckInUp': {                     
-        'targetGadgets': [], 
+    'ButtonCheckInUp': {
+        'targetGadgets': [],
         'animations': BasicAnimations.SolidAnimation(1, "white", 4000)
     },
     'Timeout': {
@@ -50,10 +55,10 @@ const ROLL_CALL_ANIMATIONS = {
     }
 };
 
-// Define two recognizers that will capture the first time each of two arbitrary buttons is pressed. 
-//  We'll use proxies to refer to the two different buttons because we don't know ahead of time 
+// Define two recognizers that will capture the first time each of two arbitrary buttons is pressed.
+//  We'll use proxies to refer to the two different buttons because we don't know ahead of time
 //  which two buttons will be used (see: https://developer.amazon.com/docs/gadget-skills/define-echo-button-events.html#proxies)
-// The two recogniziers will be used as triggers for two input handler events, used during roll call. 
+// The two recogniziers will be used as triggers for two input handler events, used during roll call.
 // see: https://developer.amazon.com/docs/gadget-skills/define-echo-button-events.html#recognizers
 const ROLL_CALL_RECOGNIZERS = {
     "roll_call_first_button_recognizer": {
@@ -84,7 +89,7 @@ const ROLL_CALL_RECOGNIZERS = {
 
 // Define named events based on the ROLL_CALL_RECOGNIZERS and the built-in "timed out" recognizer
 // to report back to the skill when the first button checks in, when the second button checks in,
-// as well as then the input handler times out, if this happens before two buttons checked in. 
+// as well as then the input handler times out, if this happens before two buttons checked in.
 // see: https://developer.amazon.com/docs/gadget-skills/define-echo-button-events.html#define
 const ROLL_CALL_EVENTS = {
     "first_button_checked_in": {
@@ -114,73 +119,73 @@ const ROLL_CALL_EVENTS = {
 const RollCall = {
     NewSession: function(handlerInput) {
         console.log("RollCall::NewSession");
-        
+
         const ctx = handlerInput.attributesManager.getRequestAttributes();
         ctx.timeout = 50000;
         ctx.openMicrophone = true;
 
-        handlerInput.jrb.speak(ri("RollCall.NewSession"))         
+        handlerInput.jrb.speak(ri("RollCall.NewSession"))
         return RollCall.StartRollCall(handlerInput);
     },
     StartRollCall: function(handlerInput) {
         console.log("RollCall::StartRollCall");
-        const {attributesManager, jrb} = handlerInput;        
+        const {attributesManager, jrb} = handlerInput;
         const ctx = attributesManager.getRequestAttributes();
         const sessionAttributes = attributesManager.getSessionAttributes();
- 
+
         console.log("RollCall::StartRollCall -> timeout = " + ctx.timeout);
         // add a StartInputHandler directive using the ROLL_CALL recognizers and events
-        jrb.addDirective(GadgetDirectives.startInputHandler({ 
-            'timeout': ctx.timeout, 
+        jrb.addDirective(GadgetDirectives.startInputHandler({
+            'timeout': ctx.timeout,
             'proxies': ['first_button', 'second_button'],
-            'recognizers': ROLL_CALL_RECOGNIZERS, 
-            'events': ROLL_CALL_EVENTS 
+            'recognizers': ROLL_CALL_RECOGNIZERS,
+            'events': ROLL_CALL_EVENTS
         }));
         jrb.addDirective(GadgetDirectives.setButtonDownAnimation(
-            ROLL_CALL_ANIMATIONS.ButtonCheckInDown));                            
+            ROLL_CALL_ANIMATIONS.ButtonCheckInDown));
         jrb.addDirective(GadgetDirectives.setButtonUpAnimation(
-            ROLL_CALL_ANIMATIONS.ButtonCheckInUp));   
- 
+            ROLL_CALL_ANIMATIONS.ButtonCheckInUp));
+
         // start keeping track of some state
         // see: https://developer.amazon.com/docs/gadget-skills/save-state-echo-button-skill.html
         sessionAttributes.buttonCount = 0;
         sessionAttributes.isRollCallComplete = false;
         sessionAttributes.expectingEndSkillConfirmation = false;
         // setup an array of DeviceIDs to hold IDs of buttons that will be used in the skill
-        sessionAttributes.DeviceIDs = [];        
+        sessionAttributes.DeviceIDs = [];
         sessionAttributes.DeviceIDs[0] = "Device ID listings";
         // Save StartInput Request ID
         sessionAttributes.CurrentInputHandlerID = handlerInput.requestEnvelope.request.requestId;
- 
+
         ctx.openMicrophone = false;
         return jrb.getResponse();
-    },     
-     
+    },
+
     HandleFirstButtonCheckIn: function(handlerInput) {
         console.log("RollCall::InputHandlerEvent::first_button_checked_in");
         const {attributesManager, jrb} = handlerInput;
         const ctx = attributesManager.getRequestAttributes();
         const sessionAttributes = attributesManager.getSessionAttributes();
 
-        console.log("RollCall:: request attributes  = " + JSON.stringify(ctx, null, 2));
+        console.log("RollCall:: request attributes  = " + util.inspect(ctx));
 
         // just in case we ever get this event, after the `second_button_checked_in` event
         //  was already handled, we check the make sure the `buttonCount` attribute is set to 0;
         //   if not, we will silently ignore the event
-        if (sessionAttributes.buttonCount === 0) {                        
+        if (sessionAttributes.buttonCount === 0) {
             // Say something when we first encounter a button
             jrb.speak(ri("RollCall.HelloButton1"))
             let fistButtonId = ctx.gameInputEvents[0].gadgetId;
             jrb.addDirective(GadgetDirectives.setIdleAnimation(
                 ROLL_CALL_ANIMATIONS.ButtonCheckInIdle, { 'targetGadgets': [fistButtonId] } ));
-            
+
             sessionAttributes.DeviceIDs[1] = fistButtonId;
             sessionAttributes.buttonCount = 1;
         }
-         
+
         ctx.openMicrophone = false;
         return jrb.getResponse()
-    },    
+    },
     HandleSecondButtonCheckIn: function(handlerInput) {
         console.log("RollCall::InputHandlerEvent::second_button_checked_in");
         const {attributesManager, jrb} = handlerInput;
@@ -188,7 +193,7 @@ const RollCall = {
         const sessionAttributes = attributesManager.getSessionAttributes();
         const gameInputEvents = ctx.gameInputEvents;
         console.log("RollCall::InputHandlerEvent::second_button_checked_in");
-        
+
         jrb.reprompt(ri("RollCall.PickColorReprompt"))
 
         if (sessionAttributes.buttonCount == 0) {
@@ -206,13 +211,13 @@ const RollCall = {
                 sessionAttributes.DeviceIDs[2] = gameInputEvents[0].gadgetId;
             } else {
                 sessionAttributes.DeviceIDs[2] = gameInputEvents[1].gadgetId;
-            }                        
+            }
         }
         sessionAttributes.buttonCount = 2;
-        
+
         // .. and ask use to pick a color for the next stage of the skill
         jrb.speak(ri("RollCall.PickColorInstructions"))
-            
+
         let deviceIds = sessionAttributes.DeviceIDs;
         deviceIds = deviceIds.slice(-2);
 
@@ -224,7 +229,7 @@ const RollCall = {
             Settings.DEFAULT_ANIMATIONS.ButtonDown));
         jrb.addDirective(GadgetDirectives.setButtonUpAnimation(
             Settings.DEFAULT_ANIMATIONS.ButtonUp));
-    
+
         sessionAttributes.isRollCallComplete = true;
         sessionAttributes.state = Settings.SKILL_STATES.PLAY_MODE;
 
@@ -235,16 +240,16 @@ const RollCall = {
         console.log("rollCallModeIntentHandlers::InputHandlerEvent::timeout");
         const {attributesManager, jrb} = handlerInput;
         const ctx = attributesManager.getRequestAttributes();
-        const sessionAttributes = attributesManager.getSessionAttributes();        
+        const sessionAttributes = attributesManager.getSessionAttributes();
 
         jrb.reprompt(ri("RollCall.Timeout.Reprompt"))
         jrb.speak(ri("RollCall.Timeout.Message"))
- 
+
         let deviceIds = sessionAttributes.DeviceIDs;
         deviceIds = deviceIds.slice(-2);
- 
+
         jrb.addDirective(GadgetDirectives.setIdleAnimation(
-            ROLL_CALL_ANIMATIONS.Timeout, { 'targetGadgets': deviceIds } ));                    
+            ROLL_CALL_ANIMATIONS.Timeout, { 'targetGadgets': deviceIds } ));
         jrb.addDirective(GadgetDirectives.setButtonDownAnimation(
             Settings.DEFAULT_ANIMATIONS.ButtonDown, { 'targetGadgets': deviceIds } ));
         jrb.addDirective(GadgetDirectives.setButtonUpAnimation(
@@ -254,7 +259,7 @@ const RollCall = {
 
         ctx.openMicrophone = true;
         return jrb.getResponse();
-    }  
+    }
 };
 
 module.exports = RollCall;

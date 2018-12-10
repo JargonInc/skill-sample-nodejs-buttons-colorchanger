@@ -8,7 +8,7 @@ This is a fork of the [Color Changer Skill for Echo Buttons](https://github.com/
 * Use the Jargon response builder to construct all responses
 * Move response content into locale-specific resource files
 
-The source template uses a response interceptor to merge together the content used for speak and reprompt instructions, as well as to add multiple directives. This isn't necessary with the Jargon SDK with the "mergeSpeakAndReprompt" option enabled. The response interceptor is still needed to set the end session flag correctly, but the skill's response interceptor isn't (and thus isn't present in this version of the template).
+The source template uses a response interceptor to merge together the content used for speak and reprompt instructions, as well as to add multiple directives. This isn't necessary with the Jargon SDK with the "mergeSpeakAndReprompt" option enabled. The response interceptor is still needed to set the end session flag correctly, but the skill's request interceptor isn't (and thus isn't present in this version of the template).
 
 ## Instructions
 

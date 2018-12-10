@@ -15,50 +15,81 @@
 * Install and Setup [ASK CLI](https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html)
 
 ### Installation
+1. **Make sure** you are running the latest version of the CLI
 
-The following instructions show how to get this skill deployed using teh ASK CLI. If you would prefer to view instructions for how to perform the same steps using the Web UIs, please foolow the instruction in [this guide](instructions/3-deployment-web.md).
+   ```bash
+   $ npm update -g ask-cli
+   ```
 
-1. Create a new skill from the template
-``` bash
-$ ask new --url https://github.com/JargonInc/skill-sample-nodejs-buttons-colorchanger.git
-	```
+2. If it's your first time using it, **initialize** the [ASK CLI](https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html) by running `ask init`. Follow the prompts.
 
-1. Initialize the [ASK CLI](https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html) by Navigating into the repository and running the command: `ask init` and create a new profile called `color-changer`. Follow the prompts to configure the profile and associate it with one of your [AWS profiles](https://docs.aws.amazon.com/cli/latest/userguide/cli-multiple-profiles.html)
+   ```bash
+   $ ask init
+   ```
 
-	```bash
-	$ cd skill-sample-nodejs-buttons-colorchanger
-	$ ask init -p color-changer
-	```
+3. Create a new skill from the template
+
+   ``` bash
+   $ ask new --url https://github.com/JargonInc/skill-sample-nodejs-buttons-colorchanger.git
+   ```
+
+Note that you'll receive a warning message about downloading from an unofficial resource. The scripts for this template are the same as the source Amazon template (as of the time of forking).
 ### Deployment
 
-ASK CLI will create the skill and the lambda function for you. The Lambda function will be created in the region associated with the AWS profile that you selected.
+ASK CLI **will create the skill and the Lambda function for you**. The Lambda function will be created in ```us-east-1 (Northern Virginia)``` by default.
 
-1. Deploy the skill and the lambda function in one step by running the following command:
+1. Navigate to the project's root directory. You should see a file named 'skill.json' there.
 
-	```bash
-	$ ask deploy -p color-changer
-	```
+2. Deploy the skill and the Lambda function in one step by running the following command:
 
-	**Note** This skill requires a NodeJS 8.10 or newer runtime. When deploying to Lambda, make sure the selected runtime is Node JS 8.10! At this time, the ASK CLI does not have an option to specify the Lambda runtime version so you will have to make the change manually in the AWS Lambda Console. 
-
+   ```bash
+   $ ask deploy
+   ``` 
 
 ### Testing
 
-1. To test, you need to login to Alexa Developer Console, and enable the "Test" switch on your skill from the "Test" Tab.
+1. To test, you need to login to Alexa Developer Console, and **enable the "Test" switch on your skill from the "Test" Tab**.
 
-2. Simulate verbal interaction with your skill through the command line using the following example:
+2. Simulate verbal interaction with your skill through the command line (this might take a few moments) using the following example (and be sure to use your invocation name if you've changed it):
 
-	```bash
-	 $ ask simulate -l en-US -p color-changer -t "alexa, open color changer"
+   ```bash
+   $ ask simulate -l en-US -t "open color changer"
+   
+   ✓ Simulation created for simulation id: 4a7a9ed8-94b2-40c0-b3bd-fb63d9887fa7
+   ◡ Waiting for simulation response{
+   "status": "SUCCESSFUL",
+   ...
+   ```
 
-	 ✓ Simulation created for simulation id: 8a5b18dc-24b9-04c0-d3bb-7b63d9887faf
-	◡ Waiting for simulation response{
-	  "status": "SUCCESSFUL",
-	  ...
-	 ```
+3. Once the "Test" switch is enabled, your skill can be tested on devices associated with the developer account as well. Speak to Alexa from any enabled device, from your browser at [echosim.io](https://echosim.io/welcome), or through your Amazon Mobile App and say:
 
-3. Once the "Test" switch is enabled, your skill can be tested on devices associated with the developer account as well. Speak to Alexa from any enabled device, from your browser at [echosim.io](https://echosim.io/welcome), or through your Amazon Mobile App and say :
+   ```text
+   Alexa, open color changer
+   ```
+## Customization
 
-	```text
-	Alexa, open color changer
-	```
+1. ```./skill.json```
+
+   Change the skill name, example phrase, icons, testing instructions etc...
+
+   Remember than many pieces of information are locale-specific and must be changed for each locale (e.g. en-US, en-GB, de-DE, etc.)
+
+   See the Skill [Manifest Documentation](https://developer.amazon.com/docs/smapi/skill-manifest.html) for more information.
+
+2. ```./lambda/custom/index.js```
+
+   Change the core skill logic, and new intent handlers, etc.
+
+3. ```./lambda/custom/resources/*```
+
+   Customize the content your skill outputs to the user.
+
+4. ```./models/*.json```
+
+   Change the model definition to replace the invocation name and the sample phrase for each intent.  Repeat the operation for each locale you are planning to support.
+
+5. Remember to re-deploy your skill and Lambda function for your changes to take effect.
+
+   ```bash
+   $ ask deploy
+   ```
